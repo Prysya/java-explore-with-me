@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.stats.mapper.EndpointHitMapper;
-import ru.practicum.stats.model.EndpointHit;
 import ru.practicum.stats.model.Stat;
 import ru.practicum.stats.repository.StatsRepository;
 import ru.practicum.stats_dto.EndpointHitRequestDto;
@@ -51,21 +50,13 @@ public class StatsServiceImpl implements StatsService {
             stats = statsRepository.findAllByDateBetween(start, end);
         } else {
             if (Boolean.TRUE.equals(unique)) {
-                stats = statsRepository.findAllByDateBetweenIpIn(start, end, uris);
-            } else {
                 stats = statsRepository.findAllByDateBetweenUniqueIpIn(start, end, uris);
+            } else {
+                stats = statsRepository.findAllByDateBetweenIpIn(start, end, uris);
             }
         }
 
 
         return stats.stream().map(EndpointHitMapper::toDto).collect(Collectors.toList());
-    }
-
-    /**
-     * @return
-     */
-    @Override
-    public List<EndpointHit> debug() {
-        return statsRepository.findAll();
     }
 }

@@ -1,7 +1,6 @@
 package ru.practicum.stats.service;
 
 
-import ru.practicum.stats.model.EndpointHit;
 import ru.practicum.stats_dto.EndpointHitRequestDto;
 import ru.practicum.stats_dto.EndpointHitResponseDto;
 
@@ -14,6 +13,4 @@ public interface StatsService {
     List<EndpointHitResponseDto> getEndpointHits(
         LocalDateTime start, LocalDateTime end, List<String> uris, Boolean unique
     );
-
-    List<EndpointHit> debug();
 }
