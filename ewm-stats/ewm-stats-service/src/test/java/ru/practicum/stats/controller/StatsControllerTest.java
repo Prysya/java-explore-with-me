@@ -19,15 +19,12 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class StatsControllerTest {
 
-    @InjectMocks
-    private StatsController statsController;
-
-    @Mock
-    private StatsService statsService;
-
     private final EndpointHitResponseDto endpointHitResponseDto = EndpointHitResponseDto.builder().build();
     private final EndpointHitRequestDto endpointHitRequestDto = EndpointHitRequestDto.builder().build();
-
+    @InjectMocks
+    private StatsController statsController;
+    @Mock
+    private StatsService statsService;
 
     @Test
     void createEndpointHit_whenInvoked_thenReturnedWithoutError() {
@@ -39,10 +36,10 @@ class StatsControllerTest {
     @Test
     void getEndpointHits_whenInvoked_thenReturnedListOfEndpointHitResponseDto() {
         when(statsService.getEndpointHits(
-            any(LocalDateTime.class),
-            any(LocalDateTime.class),
-            anyList(),
-            anyBoolean()
+                any(LocalDateTime.class),
+                any(LocalDateTime.class),
+                anyList(),
+                anyBoolean()
             )
         )
             .thenReturn(List.of(endpointHitResponseDto));

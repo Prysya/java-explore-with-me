@@ -5,11 +5,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import ru.practicum.stats.mapper.EndpointHitMapper;
 import ru.practicum.stats.model.EndpointHit;
 import ru.practicum.stats.repository.StatsRepository;
 import ru.practicum.stats_dto.EndpointHitRequestDto;
-import ru.practicum.stats_dto.EndpointHitResponseDto;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -17,17 +15,14 @@ import java.util.List;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class StatsServiceImplTest {
+    private final EndpointHitRequestDto endpointHitRequestDto = EndpointHitRequestDto.builder().build();
     @Mock
     private StatsRepository statsRepository;
-
     @InjectMocks
     private StatsServiceImpl statsService;
-
-    private final EndpointHitRequestDto endpointHitRequestDto = EndpointHitRequestDto.builder().build();
 
     @Test
     void createEndpointHit_whenInvoked_thenSaveToRepository() {
@@ -54,6 +49,7 @@ class StatsServiceImplTest {
     void getEndpointHits_whenUrisIsNotEmptyAndUniqueIsTrue_thenFindAllByDateBetweenUniqueIpInInvoked() {
         statsService.getEndpointHits(LocalDateTime.now(), LocalDateTime.now(), List.of("uri"), true);
 
-        verify(statsRepository).findAllByDateBetweenUniqueIpIn(any(LocalDateTime.class), any(LocalDateTime.class), anyList());
+        verify(statsRepository).findAllByDateBetweenUniqueIpIn(
+            any(LocalDateTime.class), any(LocalDateTime.class), anyList());
     }
 }

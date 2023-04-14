@@ -16,15 +16,12 @@ import ru.practicum.stats_dto.EndpointHitRequestDto;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(StatsController.class)
@@ -62,7 +59,7 @@ class StatsControllerIT {
     @Test
     @SneakyThrows
     void createEndpointHit_whenEndpointHitIsValid_thenStatusOk() {
-       mockMvc
+        mockMvc
             .perform(
                 post(HIT_URL)
                     .contentType(MediaType.APPLICATION_JSON)
@@ -99,7 +96,8 @@ class StatsControllerIT {
             .andExpect(status().isOk());
 
         verify(statsService).getEndpointHits(any(LocalDateTime.class),
-            any(LocalDateTime.class), any(ArrayList.class), eq(false));
+            any(LocalDateTime.class), anyList(), eq(false)
+        );
     }
 
     @Test
@@ -113,7 +111,8 @@ class StatsControllerIT {
             .andExpect(status().isBadRequest());
 
         verify(statsService, never()).getEndpointHits(any(LocalDateTime.class),
-            any(LocalDateTime.class), anyList(), anyBoolean());
+            any(LocalDateTime.class), anyList(), anyBoolean()
+        );
     }
 
     @Test
@@ -127,6 +126,7 @@ class StatsControllerIT {
             .andExpect(status().isBadRequest());
 
         verify(statsService, never()).getEndpointHits(any(LocalDateTime.class),
-            any(LocalDateTime.class), anyList(), anyBoolean());
+            any(LocalDateTime.class), anyList(), anyBoolean()
+        );
     }
 }
