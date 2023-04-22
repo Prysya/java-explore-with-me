@@ -46,16 +46,11 @@ public class StatsServiceImpl implements StatsService {
     ) {
         List<Stat> stats;
 
-        if (uris.isEmpty()) {
-            stats = statsRepository.findAllByDateBetween(start, end);
+        if (Boolean.TRUE.equals(unique)) {
+            stats = statsRepository.findAllByDateBetweenUniqueIpIn(start, end, uris);
         } else {
-            if (Boolean.TRUE.equals(unique)) {
-                stats = statsRepository.findAllByDateBetweenUniqueIpIn(start, end, uris);
-            } else {
-                stats = statsRepository.findAllByDateBetweenIpIn(start, end, uris);
-            }
+            stats = statsRepository.findAllByDateBetweenIpIn(start, end, uris);
         }
-
 
         return stats.stream().map(EndpointHitMapper::toDto).collect(Collectors.toList());
     }

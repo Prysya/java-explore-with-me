@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Map;
 
 @RequiredArgsConstructor
-public class BaseClient {
+class BaseClient {
     protected final RestTemplate rest;
 
     private static ResponseEntity<Object> prepareGatewayResponse(ResponseEntity<Object> response) {

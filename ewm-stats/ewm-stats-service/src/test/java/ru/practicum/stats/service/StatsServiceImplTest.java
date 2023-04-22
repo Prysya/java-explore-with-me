@@ -32,13 +32,6 @@ class StatsServiceImplTest {
     }
 
     @Test
-    void getEndpointHits_whenUrisIsEmpty_thenFindAllByDateBetweenInvoked() {
-        statsService.getEndpointHits(LocalDateTime.now(), LocalDateTime.now(), List.of(), false);
-
-        verify(statsRepository).findAllByDateBetween(any(LocalDateTime.class), any(LocalDateTime.class));
-    }
-
-    @Test
     void getEndpointHits_whenUrisIsNotEmpty_thenFindAllByDateBetweenIpInInvoked() {
         statsService.getEndpointHits(LocalDateTime.now(), LocalDateTime.now(), List.of("uri"), false);
 
