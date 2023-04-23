@@ -32,7 +32,10 @@ import ru.practicum.stats_client.StatsClient;
 import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static ru.practicum.main_service.category.util.SharedCategoryRequests.checkAndReturnCategory;
@@ -46,11 +49,12 @@ import static ru.practicum.main_service.util.StatsClientHelper.makePublicEndpoin
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class EventServiceImpl implements EventService {
+    private static final String EVENTS_PREFIX = "/events/";
+
     private final LocationRepository locationRepository;
     private final EventRepository eventRepository;
     private final UserRepository userRepository;
     private final CategoryRepository categoryRepository;
-
     private final StatsClient statsClient;
 
 
@@ -223,16 +227,31 @@ public class EventServiceImpl implements EventService {
         return events.stream().map(this::parseToShortDtoWithMappers).collect(Collectors.toList());
     }
 
+    /* Helpers */
+
+
+    /**
+     * Сортировка событий по количеству просмотров
+     *
+     * @param events список событий
+     */
     private void sortEventsByViews(List<Event> events) {
         Map<String, Long> stats = getEventStats(events);
 
-        events.sort(Comparator.comparing(event -> stats.getOrDefault("/events/" + event.getId(), 0L)));
+        events.sort((a, b) -> stats.getOrDefault(EVENTS_PREFIX + b.getId(), 0L)
+            .compareTo(stats.getOrDefault(EVENTS_PREFIX + a.getId(), 0L)));
     }
 
+    /**
+     * Получение просмотров с сервиса статистики
+     *
+     * @param events список событий
+     * @return {@link Map} где ключ это url, а значение количество просмотров
+     */
     private Map<String, Long> getEventStats(List<Event> events) {
         List<String> uris = events
             .stream()
-            .map(event -> "/events/" + event.getId())
+            .map(event -> EVENTS_PREFIX + event.getId())
             .collect(Collectors.toList());
         String start = LocalDateTime.now().minusYears(10).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
         String end = LocalDateTime.now().plusYears(10).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
@@ -240,7 +259,6 @@ public class EventServiceImpl implements EventService {
         return getViews(statsClient, start, end, uris, false);
     }
 
-    /* Helpers */
 
     /**
      * Проверка на то что событие еще не опубликовано
