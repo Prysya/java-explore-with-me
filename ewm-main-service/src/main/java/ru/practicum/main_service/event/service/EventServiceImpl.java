@@ -27,16 +27,19 @@ import ru.practicum.main_service.location.repository.LocationRepository;
 import ru.practicum.main_service.user.mapper.UserMapper;
 import ru.practicum.main_service.user.model.User;
 import ru.practicum.main_service.user.repository.UserRepository;
+import ru.practicum.stats_client.StatsClient;
 
+import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static ru.practicum.main_service.category.util.SharedCategoryRequests.checkAndReturnCategory;
 import static ru.practicum.main_service.location.util.SharedLocationRequests.findOrCreateLocation;
 import static ru.practicum.main_service.user.util.SharedUserRequests.checkAndReturnUser;
+import static ru.practicum.main_service.util.StatsClientHelper.getViews;
+import static ru.practicum.main_service.util.StatsClientHelper.makePublicEndpointHit;
 
 @Slf4j
 @Service
@@ -48,21 +51,19 @@ public class EventServiceImpl implements EventService {
     private final UserRepository userRepository;
     private final CategoryRepository categoryRepository;
 
-    /* Admin */
+    private final StatsClient statsClient;
 
-    /**
-     * Проверка на то что событие еще не опубликовано
-     *
-     * @param state текущее состояние события
-     * @throws EventDateConflictException если событие опубликовано
-     */
-    private static void checkEventState(EventState state) {
-        if (state == EventState.PUBLISHED) {
-            throw new EventStatusConflictException();
-        }
+
+    @Override
+    public EventFullDto getPublicEventById(Long eventId, HttpServletRequest request) {
+        log.debug("Event Service. Get public events by eventId: {}", eventId);
+
+        makePublicEndpointHit(statsClient, request);
+
+        return parseToFullDtoWithMappers(
+            eventRepository.findByIdAndPublished(eventId).orElseThrow(() -> new EventNotFoundException(eventId)));
     }
 
-    /* Private */
 
     @Override
     public List<EventFullDto> getEventsByAdmin(
@@ -187,23 +188,22 @@ public class EventServiceImpl implements EventService {
         return parseToFullDtoWithMappers(event);
     }
 
-    /* Public */
     @Override
     public List<EventShortDto> getPublicEvents(
         String text, List<Long> categories, Boolean paid, LocalDateTime rangeStart, LocalDateTime rangeEnd,
-        Boolean onlyAvailable, EventSort sort, Integer from, Integer size
+        Boolean onlyAvailable, EventSort sort, Integer from, Integer size, HttpServletRequest request
     ) {
         log.debug("Event Service. Get public events. Text: {}, categories: {}, paid: {}, rangeStart: {}," +
                 "rangeEnd: {}, onlyAvailable: {}, sort: {}, from: {}, size: {}",
             text, categories, paid, rangeStart, rangeEnd, onlyAvailable, sort, from, size
         );
 
+        makePublicEndpointHit(statsClient, request);
+
         PageRequest pageRequest;
         List<Event> events;
 
-        if (sort == EventSort.VIEWS) {
-            pageRequest = PageRequest.of(from, size, Sort.by("views"));
-        } else if (sort == EventSort.EVENT_DATE) {
+        if (sort == EventSort.EVENT_DATE) {
             pageRequest = PageRequest.of(from, size, Sort.by("eventDate"));
         } else {
             pageRequest = PageRequest.of(from, size);
@@ -216,17 +216,42 @@ public class EventServiceImpl implements EventService {
             events = eventRepository.getEventsForUser(text, categories, paid, rangeStart, rangeEnd, pageRequest);
         }
 
+        if (sort == EventSort.VIEWS) {
+            sortEventsByViews(events);
+        }
+
         return events.stream().map(this::parseToShortDtoWithMappers).collect(Collectors.toList());
+    }
+
+    private void sortEventsByViews(List<Event> events) {
+        Map<String, Long> stats = getEventStats(events);
+
+        events.sort(Comparator.comparing(event -> stats.getOrDefault("/events/" + event.getId(), 0L)));
+    }
+
+    private Map<String, Long> getEventStats(List<Event> events) {
+        List<String> uris = events
+            .stream()
+            .map(event -> "/events/" + event.getId())
+            .collect(Collectors.toList());
+        String start = LocalDateTime.now().minusYears(10).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+        String end = LocalDateTime.now().plusYears(10).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+
+        return getViews(statsClient, start, end, uris, false);
     }
 
     /* Helpers */
 
-    @Override
-    public EventFullDto getPublicEventById(Long eventId) {
-        log.debug("Event Service. Get public events by eventId: {}", eventId);
-
-        return parseToFullDtoWithMappers(
-            eventRepository.findByIdAndPublished(eventId).orElseThrow(() -> new EventNotFoundException(eventId)));
+    /**
+     * Проверка на то что событие еще не опубликовано
+     *
+     * @param state текущее состояние события
+     * @throws EventDateConflictException если событие опубликовано
+     */
+    private void checkEventState(EventState state) {
+        if (state == EventState.PUBLISHED) {
+            throw new EventStatusConflictException();
+        }
     }
 
     /**

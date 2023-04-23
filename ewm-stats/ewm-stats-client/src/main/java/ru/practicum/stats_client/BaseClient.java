@@ -55,6 +55,10 @@ class BaseClient {
         return prepareGatewayResponse(shareitServerResponse);
     }
 
+    protected ResponseEntity<Object> get(String path, @Nullable Map<String, Object> parameters) {
+        return makeAndSendRequest(HttpMethod.GET, path, parameters, null);
+    }
+
     private HttpHeaders defaultHeaders() {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);

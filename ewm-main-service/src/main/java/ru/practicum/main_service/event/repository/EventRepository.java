@@ -2,6 +2,7 @@ package ru.practicum.main_service.event.repository;
 
 
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -22,8 +23,10 @@ public interface EventRepository extends JpaRepository<Event, Long> {
 
     Optional<Event> findByInitiatorIdAndId(Long initiatorId, Long eventId);
 
+    @EntityGraph(value = Event.WITH_EVENT_DATA_GRAPH, type = EntityGraph.EntityGraphType.LOAD)
     Set<Event> getByIdIn(Collection<Long> ids);
 
+    @EntityGraph(value = Event.WITH_EVENT_DATA_GRAPH, type = EntityGraph.EntityGraphType.LOAD)
     List<Event> getByInitiatorIdOrderByEventDateDesc(Long id, Pageable pageable);
 
     @Query("select e from Event as e " +
@@ -33,6 +36,7 @@ public interface EventRepository extends JpaRepository<Event, Long> {
         "and e.eventDate >= :rangeStart " +
         "and e.eventDate <= :rangeEnd " +
         "order by e.id desc ")
+    @EntityGraph(value = Event.WITH_EVENT_DATA_GRAPH, type = EntityGraph.EntityGraphType.LOAD)
     List<Event> getEventsForAdmin(
         @Param("users") List<Long> users,
         @Param("states") List<EventState> states,
@@ -50,6 +54,7 @@ public interface EventRepository extends JpaRepository<Event, Long> {
         "and e.paid = :paid " +
         "and e.eventDate > :rangeStart " +
         "and e.eventDate <= :rangeEnd")
+    @EntityGraph(value = Event.WITH_EVENT_DATA_GRAPH, type = EntityGraph.EntityGraphType.LOAD)
     List<Event> getEventsForUser(
         @Param("text") String text,
         @Param("categories") List<Long> categories,
@@ -68,6 +73,7 @@ public interface EventRepository extends JpaRepository<Event, Long> {
         "and e.eventDate > :rangeStart " +
         "and e.participants.size < e.participantLimit " +
         "and e.eventDate <= :rangeEnd")
+    @EntityGraph(value = Event.WITH_EVENT_DATA_GRAPH, type = EntityGraph.EntityGraphType.LOAD)
     List<Event> getAvailableEventsForUser(
         @Param("text") String text,
         @Param("categories") List<Long> categories,

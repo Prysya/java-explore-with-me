@@ -21,12 +21,20 @@ import java.util.Set;
 @Table(name = "events")
 @NoArgsConstructor
 @ToString
+@NamedEntityGraph(
+    name = Event.WITH_EVENT_DATA_GRAPH,
+    attributeNodes = {
+        @NamedAttributeNode("participants"),
+    }
+)
 public class Event implements Serializable {
+    public static final String WITH_EVENT_DATA_GRAPH = "graph.Event";
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 2000)
     private String annotation;
 
     @ManyToOne

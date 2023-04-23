@@ -33,6 +33,7 @@ services:
     container_name: ewm-main-service
     depends_on:
       - ewm-db
+      - stats-server
     ports:
       - "8080:8080"
     environment:
