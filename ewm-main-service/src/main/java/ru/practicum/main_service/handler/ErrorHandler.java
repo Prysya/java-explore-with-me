@@ -3,7 +3,8 @@ package ru.practicum.main_service.handler;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
@@ -126,7 +127,8 @@ public class ErrorHandler {
         return sw.toString();
     }
 
-    @Data
+    @Getter
+    @Setter
     @Builder
     private static class ErrorResponse {
         /**
