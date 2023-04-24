@@ -1,0 +1,34 @@
+spring:
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQL10Dialect
+        format_sql: 'true'
+    hibernate:
+      ddl-auto: none
+  datasource:
+    password: ${SPRING_DATASOURCE_PASSWORD}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    url: jdbc:postgresql://${SPRING_DATASOURCE_HOST}:${SPRING_DATASOURCE_PORT}/${SPRING_DATASOURCE_NAME}
+  sql:
+    init:
+      mode: always
+      platform: postgres
+logging:
+  level:
+    org:
+      springframework:
+        orm:
+          jpa:
+            JpaTransactionManager: DEBUG
+            nodeValue: INFO
+        transaction:
+          interceptor: TRACE
+          nodeValue: INFO
+    ru:
+      practicum:
+        main_service: DEBUG
+stats-server:
+  url: ${STATS_SERVER_URL}
+server:
+  port: '9090'
