@@ -253,8 +253,10 @@ public class EventServiceImpl implements EventService {
             .stream()
             .map(event -> EVENTS_PREFIX + event.getId())
             .collect(Collectors.toList());
-        String start = LocalDateTime.now().minusYears(10).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-        String end = LocalDateTime.now().plusYears(10).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        String start = LocalDateTime.now().minusYears(10).format(formatter);
+        String end = LocalDateTime.now().plusYears(10).format(formatter);
 
         return getViews(statsClient, start, end, uris, false);
     }
