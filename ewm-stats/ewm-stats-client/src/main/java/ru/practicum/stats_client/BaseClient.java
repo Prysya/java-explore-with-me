@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Map;
 
 @RequiredArgsConstructor
-public class BaseClient {
+class BaseClient {
     protected final RestTemplate rest;
 
     private static ResponseEntity<Object> prepareGatewayResponse(ResponseEntity<Object> response) {
@@ -53,6 +53,10 @@ public class BaseClient {
             return ResponseEntity.status(e.getStatusCode()).body(e.getResponseBodyAsByteArray());
         }
         return prepareGatewayResponse(shareitServerResponse);
+    }
+
+    protected ResponseEntity<Object> get(String path, @Nullable Map<String, Object> parameters) {
+        return makeAndSendRequest(HttpMethod.GET, path, parameters, null);
     }
 
     private HttpHeaders defaultHeaders() {

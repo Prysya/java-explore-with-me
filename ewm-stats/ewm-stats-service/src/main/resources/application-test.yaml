@@ -1,0 +1,19 @@
+spring:
+  datasource:
+    username: test
+    url: jdbc:h2:mem:ewm-stats
+    driverClassName: org.h2.Driver
+    password: test
+  sql:
+    init:
+      mode: always
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQL10Dialect
+        format_sql: 'true'
+    hibernate:
+      ddl-auto: none
+  config:
+    activate:
+      on-profile: ci,test

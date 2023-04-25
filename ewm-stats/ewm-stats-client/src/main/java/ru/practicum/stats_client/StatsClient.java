@@ -9,15 +9,16 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.util.DefaultUriBuilderFactory;
 import ru.practicum.stats_dto.EndpointHitRequestDto;
 
+import java.util.List;
+import java.util.Map;
+
 @Service
 public class StatsClient extends BaseClient {
-    private static final String API_PREFIX = "/hit";
-
     @Autowired
     public StatsClient(@Value("${stats-server.url}") String serverUrl, RestTemplateBuilder builder) {
         super(
             builder
-                .uriTemplateHandler(new DefaultUriBuilderFactory(serverUrl + API_PREFIX))
+                .uriTemplateHandler(new DefaultUriBuilderFactory(serverUrl))
                 .requestFactory(HttpComponentsClientHttpRequestFactory::new)
                 .build()
         );
@@ -25,6 +26,17 @@ public class StatsClient extends BaseClient {
 
 
     public ResponseEntity<Object> createEndpointHit(EndpointHitRequestDto endpointHitRequestDto) {
-        return post("", endpointHitRequestDto);
+        return post("/hit", endpointHitRequestDto);
+    }
+
+    public ResponseEntity<Object> getEndpointStats(String start, String end, List<String> uris, Boolean unique) {
+        Map<String, Object> parameters = Map.of(
+            "uris", String.join(",", uris),
+            "unique", unique,
+            "start", start,
+            "end", end
+        );
+
+        return get("/stats?start={start}&end={end}&uris={uris}&unique={unique}", parameters);
     }
 }

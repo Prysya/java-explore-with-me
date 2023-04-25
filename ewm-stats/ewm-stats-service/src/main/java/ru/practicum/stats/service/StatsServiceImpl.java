@@ -1,6 +1,7 @@
 package ru.practicum.stats.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.stats.mapper.EndpointHitMapper;
@@ -13,6 +14,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -28,6 +30,8 @@ public class StatsServiceImpl implements StatsService {
     @Override
     @Transactional
     public void createEndpointHit(EndpointHitRequestDto endpointHitRequestDto) {
+        log.debug("Stats. Create endpoint hit. Request: {}", endpointHitRequestDto);
+
         statsRepository.save(EndpointHitMapper.toEntity(endpointHitRequestDto));
     }
 
@@ -44,18 +48,15 @@ public class StatsServiceImpl implements StatsService {
     public List<EndpointHitResponseDto> getEndpointHits(
         LocalDateTime start, LocalDateTime end, List<String> uris, Boolean unique
     ) {
+        log.debug("Stats. Get endpoint hits. Start: {}, end: {}, uris: {}, unique: {}", start, end, uris, unique);
+
         List<Stat> stats;
 
-        if (uris.isEmpty()) {
-            stats = statsRepository.findAllByDateBetween(start, end);
+        if (Boolean.TRUE.equals(unique)) {
+            stats = statsRepository.findAllByDateBetweenUniqueIpIn(start, end, uris);
         } else {
-            if (Boolean.TRUE.equals(unique)) {
-                stats = statsRepository.findAllByDateBetweenUniqueIpIn(start, end, uris);
-            } else {
-                stats = statsRepository.findAllByDateBetweenIpIn(start, end, uris);
-            }
+            stats = statsRepository.findAllByDateBetweenIpIn(start, end, uris);
         }
-
 
         return stats.stream().map(EndpointHitMapper::toDto).collect(Collectors.toList());
     }
