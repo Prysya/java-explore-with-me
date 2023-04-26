@@ -28,4 +28,9 @@ public class UserDto implements Serializable {
      * Имя
      */
     String name;
+
+    /**
+     * Рейтинг пользователя
+     */
+    Integer rating;
 }

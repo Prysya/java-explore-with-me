@@ -10,6 +10,7 @@ import ru.practicum.main_service.event.dto.NewEventDto;
 import ru.practicum.main_service.event.model.Event;
 import ru.practicum.main_service.location.dto.LocationDto;
 import ru.practicum.main_service.location.model.Location;
+import ru.practicum.main_service.rating.util.RatingCalculator;
 import ru.practicum.main_service.user.dto.UserShortDto;
 import ru.practicum.main_service.user.model.User;
 
@@ -46,6 +47,10 @@ public class EventMapper {
             .initiator(initiator)
             .paid(event.getPaid())
             .title(event.getTitle())
+            .rating(
+                Optional.ofNullable(event.getRatings())
+                    .map(RatingCalculator::calculateRating).orElse(0)
+            )
             .build();
     }
 
@@ -66,6 +71,10 @@ public class EventMapper {
             .requestModeration(event.getRequestModeration())
             .state(event.getState())
             .title(event.getTitle())
+            .rating(
+                Optional.ofNullable(event.getRatings())
+                    .map(RatingCalculator::calculateRating).orElse(0)
+            )
             .build();
     }
 }

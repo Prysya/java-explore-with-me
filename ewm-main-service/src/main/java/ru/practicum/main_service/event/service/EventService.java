@@ -39,4 +39,8 @@ public interface EventService {
     );
 
     EventFullDto getPublicEventById(Long id, HttpServletRequest request);
+
+    void addEventRating(Long userId, Long eventId, Boolean isPositive);
+
+    void deleteEventRating(Long userId, Long eventId);
 }

@@ -1,3 +1,4 @@
+drop table if exists ratings;
 drop table if exists compilations;
 drop table if exists requests;
 drop table if exists compilation_events;
@@ -21,7 +22,6 @@ create table if not exists compilations
     title  varchar(512) not null,
     pinned boolean      not null
 );
-
 
 create table if not exists categories
 (
@@ -58,6 +58,19 @@ create table if not exists events
         foreign key (initiator_id) references users,
     constraint events_locations_id_fk
         foreign key (location_id) references locations
+);
+
+create table if not exists ratings
+(
+    user_id      bigint  not null,
+    event_id     bigint  not null,
+    is_positive  boolean not null,
+    initiator_id bigint  not null,
+    constraint ratings_users_id_fk
+        foreign key (user_id) references users,
+    constraint ratings_events_id_fk
+        foreign key (event_id) references events,
+    primary key (user_id, event_id)
 );
 
 create index if not exists events_event_date_index
