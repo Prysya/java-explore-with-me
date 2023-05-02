@@ -5,6 +5,7 @@ import org.hibernate.annotations.WhereJoinTable;
 import ru.practicum.main_service.category.model.Category;
 import ru.practicum.main_service.event.constant.EventState;
 import ru.practicum.main_service.location.model.Location;
+import ru.practicum.main_service.rating.model.Rating;
 import ru.practicum.main_service.user.model.User;
 
 import javax.persistence.*;
@@ -25,6 +26,7 @@ import java.util.Set;
     name = Event.WITH_EVENT_DATA_GRAPH,
     attributeNodes = {
         @NamedAttributeNode("participants"),
+        @NamedAttributeNode("ratings")
     }
 )
 public class Event implements Serializable {
@@ -84,4 +86,9 @@ public class Event implements Serializable {
 
     @Column(nullable = false, length = 120)
     private String title;
+
+    @OneToMany
+    @JoinColumn(name = "event_id")
+    @ToString.Exclude
+    private Set<Rating> ratings;
 }

@@ -58,4 +58,9 @@ public class EventShortDto implements Serializable {
      * Количество просмотрев события
      */
     Integer views;
+
+    /**
+     * Рейтинг события
+     */
+    Integer rating;
 }

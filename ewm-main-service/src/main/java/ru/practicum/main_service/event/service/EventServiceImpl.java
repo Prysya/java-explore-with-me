@@ -24,6 +24,8 @@ import ru.practicum.main_service.event.repository.EventRepository;
 import ru.practicum.main_service.location.mapper.LocationMapper;
 import ru.practicum.main_service.location.model.Location;
 import ru.practicum.main_service.location.repository.LocationRepository;
+import ru.practicum.main_service.rating.model.Rating;
+import ru.practicum.main_service.rating.repository.RatingRepository;
 import ru.practicum.main_service.user.mapper.UserMapper;
 import ru.practicum.main_service.user.model.User;
 import ru.practicum.main_service.user.repository.UserRepository;
@@ -40,6 +42,7 @@ import java.util.stream.Collectors;
 
 import static ru.practicum.main_service.category.util.SharedCategoryRequests.checkAndReturnCategory;
 import static ru.practicum.main_service.location.util.SharedLocationRequests.findOrCreateLocation;
+import static ru.practicum.main_service.rating.util.RatingCalculator.calculateRating;
 import static ru.practicum.main_service.user.util.SharedUserRequests.checkAndReturnUser;
 import static ru.practicum.main_service.util.StatsClientHelper.getViews;
 import static ru.practicum.main_service.util.StatsClientHelper.makePublicEndpointHit;
@@ -50,7 +53,7 @@ import static ru.practicum.main_service.util.StatsClientHelper.makePublicEndpoin
 @RequiredArgsConstructor
 public class EventServiceImpl implements EventService {
     private static final String EVENTS_PREFIX = "/events/";
-
+    private final RatingRepository ratingRepository;
     private final LocationRepository locationRepository;
     private final EventRepository eventRepository;
     private final UserRepository userRepository;
@@ -66,6 +69,31 @@ public class EventServiceImpl implements EventService {
 
         return parseToFullDtoWithMappers(
             eventRepository.findByIdAndPublished(eventId).orElseThrow(() -> new EventNotFoundException(eventId)));
+    }
+
+    @Override
+    @Transactional
+    public void addEventRating(Long userId, Long eventId, Boolean isPositive) {
+        log.debug(
+            "Event Service. Add event rating. UserId: {}, eventId: {}, isPositive: {}", userId, eventId, isPositive);
+
+        Event event = eventRepository.findById(eventId)
+            .orElseThrow(() -> new EventNotFoundException(eventId));
+        Long initiatorId = event.getInitiator().getId();
+
+        if (initiatorId.equals(userId)) {
+            throw new EventInitiatorLikeConflictException();
+        }
+
+        ratingRepository.save(new Rating(userId, eventId, isPositive, initiatorId));
+    }
+
+    @Override
+    @Transactional
+    public void deleteEventRating(Long userId, Long eventId) {
+        log.debug("Event Service. Delete event rating. UserId: {}, eventId: {}", userId, eventId);
+
+        ratingRepository.deleteByUserIdAndEventId(userId, eventId);
     }
 
 
@@ -220,15 +248,44 @@ public class EventServiceImpl implements EventService {
             events = eventRepository.getEventsForUser(text, categories, paid, rangeStart, rangeEnd, pageRequest);
         }
 
-        if (sort == EventSort.VIEWS) {
-            sortEventsByViews(events);
+        if (Objects.nonNull(sort)) {
+            switch (sort) {
+                case VIEWS:
+                    sortEventsByViews(events);
+                    break;
+                case EVENT_RATING:
+                    sortEventByRating(events);
+                    break;
+                case USER_RATING:
+                    sortEventsByUserRating(events);
+                    break;
+            }
         }
+
 
         return events.stream().map(this::parseToShortDtoWithMappers).collect(Collectors.toList());
     }
 
     /* Helpers */
 
+    /**
+     * Сортировка событий по рейтингу организатора
+     *
+     * @param events список событий
+     */
+    private void sortEventsByUserRating(List<Event> events) {
+        events.sort((a, b) -> calculateRating(b.getInitiator().getRatings()).compareTo(
+            calculateRating(a.getInitiator().getRatings())));
+    }
+
+    /**
+     * Сортировка событий по рейтингу события
+     *
+     * @param events список событий
+     */
+    private void sortEventByRating(List<Event> events) {
+        events.sort((a, b) -> calculateRating(b.getRatings()).compareTo(calculateRating(a.getRatings())));
+    }
 
     /**
      * Сортировка событий по количеству просмотров

@@ -30,11 +30,10 @@ public interface EventRepository extends JpaRepository<Event, Long> {
     List<Event> getByInitiatorIdOrderByEventDateDesc(Long id, Pageable pageable);
 
     @Query("select e from Event as e " +
-        "where ((:users) is null or e.initiator.id in :users) " +
-        "and ((:states) is null or e.state in :states) " +
-        "and ((:categories) is null or e.category.id in :categories) " +
-        "and e.eventDate >= :rangeStart " +
-        "and e.eventDate <= :rangeEnd " +
+        "where (:users is null or e.initiator.id in :users) " +
+        "and (:states is null or e.state in :states) " +
+        "and (:categories is null or e.category.id in :categories) " +
+        "and e.eventDate between :rangeStart and :rangeEnd " +
         "order by e.id desc ")
     @EntityGraph(value = Event.WITH_EVENT_DATA_GRAPH, type = EntityGraph.EntityGraphType.LOAD)
     List<Event> getEventsForAdmin(
@@ -50,10 +49,10 @@ public interface EventRepository extends JpaRepository<Event, Long> {
         "where (UPPER(e.annotation) like UPPER(CONCAT('%',:text,'%')) " +
         "or UPPER(e.description) like UPPER(CONCAT('%',:text,'%')) or :text is null ) " +
         "and e.state = 'PUBLISHED' " +
-        "and ((:categories) is null or e.category.id in :categories) " +
-        "and e.paid = :paid " +
-        "and e.eventDate > :rangeStart " +
-        "and e.eventDate <= :rangeEnd")
+        "and (:categories is null or e.category.id in :categories) " +
+        "and (:paid is null or e.paid = :paid) " +
+        "and e.eventDate between :rangeStart and :rangeEnd"
+    )
     @EntityGraph(value = Event.WITH_EVENT_DATA_GRAPH, type = EntityGraph.EntityGraphType.LOAD)
     List<Event> getEventsForUser(
         @Param("text") String text,
@@ -68,11 +67,11 @@ public interface EventRepository extends JpaRepository<Event, Long> {
         "where (UPPER(e.annotation) like UPPER(CONCAT('%',:text,'%')) " +
         "or UPPER(e.description) like UPPER(CONCAT('%',:text,'%')) or :text is null ) " +
         "and e.state = 'PUBLISHED' " +
-        "and ((:categories) is null or e.category.id in :categories) " +
-        "and e.paid = :paid " +
-        "and e.eventDate > :rangeStart " +
-        "and e.participants.size < e.participantLimit " +
-        "and e.eventDate <= :rangeEnd")
+        "and (:categories is null or e.category.id in :categories) " +
+        "and (:paid is null or e.paid = :paid) " +
+        "and e.eventDate between :rangeStart and :rangeEnd " +
+        "and e.participants.size < e.participantLimit"
+    )
     @EntityGraph(value = Event.WITH_EVENT_DATA_GRAPH, type = EntityGraph.EntityGraphType.LOAD)
     List<Event> getAvailableEventsForUser(
         @Param("text") String text,
